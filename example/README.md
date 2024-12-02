@@ -5,8 +5,6 @@
 To get started with the @intercom/intercom-react-native example app, please follow the instructions below:
 
 1. Install XCode before you setup the app.
->Please note that there is a known bug that prevents the iOS app from building on the latest Xcode. Therefore, it's recommended to use Xcode 14.2.
-
 
 2. Setup the app using:
 ```sh
@@ -32,7 +30,7 @@ Please set up your React Native Development Environment for Android as described
 To run the app on Android, execute the following command:
 
 ```sh
-yarn example android --variant=fossDebug
+yarn example android
 ```
 
 To run the app on Android, execute the following command:

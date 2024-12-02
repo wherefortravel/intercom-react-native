@@ -207,6 +207,17 @@ public class IntercomModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void isUserLoggedIn(Promise promise) {
+    promise.resolve(Intercom.client().isUserLoggedIn());
+  }
+
+  @ReactMethod
+  public void fetchLoggedInUserAttributes(Promise promise) {
+    Registration registration = Intercom.client().fetchLoggedInUserAttributes();
+    promise.resolve(IntercomHelpers.deconstructRegistration(registration));
+  }
+
+  @ReactMethod
   public void logout(Promise promise) {
     try {
       Intercom.client().logout();
@@ -238,7 +249,7 @@ public class IntercomModule extends ReactContextBaseJavaModule {
       Log.d(NAME, "setLogLevel");
       promise.resolve(true);
     } catch (Exception err) {
-      Log.e(NAME, "getUnreadConversationCount error:");
+      Log.e(NAME, "setLogLevel error:");
       Log.e(NAME, err.toString());
       promise.reject(IntercomErrorCodes.SET_LOG_LEVEL, err.toString());
     }

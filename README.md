@@ -25,6 +25,11 @@ ___
     - [Permissions](#ios-permissions)
     - [Push Notifications](#ios-push-notifications)
     - [Push notification deep links support](#ios-push-notification-deep-links-support)
+  - [Expo](#expo)
+    - [Push Notifications](#expo-push-notifications)
+    - [Push notification deep links support](#expo-push-notification-deep-links-support)
+      - [Android](#android-deep-link)
+      - [iOS](#ios-deep-link)
 - [Common methods](#methods)
   - [Types](#types)
 - [Usage](#usage)
@@ -276,9 +281,20 @@ public class MainNotificationService extends FirebaseMessagingService {
 
 ```
 
-See the [example app](https://github.com/intercom/intercom-react-native/blob/main/example/src/App.tsx) for an example of how to handle deep linking in your app.
+Add the following in your `MainActivity`
+
+```kotlin
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+  }
+```
+
+See the [example app](https://github.com/intercom/intercom-react-native/blob/main/sandboxes/NotificationsSandbox/App.tsx) for an example of how to handle deep linking in your app.
 
 ### IOS
+
+Intercom for iOS requires a **minimum iOS version of 15.**
 
 ```sh
 cd ios
@@ -322,11 +338,14 @@ See [How to manually link IOS Intercom SDK](docs/IOS-MANUAL-LINKING.md)
 Add this permission to your `Info.plist`
 
 ```xml
-<key>NSPhotoLibraryUsageDescription</key>
-<string>Send photos to support center</string>
+<key>NSCameraUsageDescription</key>
+<string>Access your camera to take photos within a conversation</string>
 ```
 
 #### iOS: Push Notifications
+
+>**Note**: You should request user permission to display push notifications.
+e.g. [react-native-permissions](https://github.com/zoontek/react-native-permissions)
 
 Add **Push Notifications** and **Background Modes > Remote Notifications** [Details HERE](https://developer.apple.com/documentation/xcode/adding-capabilities-to-your-app)
 
@@ -426,6 +445,165 @@ Setup of React Native deep links can be found [Here](https://reactnative.dev/doc
 See the [example app](https://github.com/intercom/intercom-react-native/blob/main/example/src/App.tsx) for an example of how to handle deep linking in your app.
 
 ___
+
+### Expo
+
+If you are using Expo, you can use the built-in plugin.
+
+After installing this npm package, add the [config plugin](https://docs.expo.io/guides/config-plugins/) to the [`plugins`](https://docs.expo.io/versions/latest/config/app/#plugins) array of your `app.json` or `app.config.js`:
+
+```json
+{
+  "expo": {
+    "plugins": ["@intercom/intercom-react-native"]
+  }
+}
+```
+
+The plugin provides props for extra customization. Every time you change the props or plugins, you'll need to rebuild (and `prebuild`) the native app. If no extra properties are added, defaults will be used.
+
+- `appId` (_string_): App ID from Intercom.
+- `androidApiKey` (_string_): Android API Key from Intercom.
+- `iosApiKey` (_string_): iOS API Key from Intercom.
+- `intercomRegion` (_string_): Region for Intercom `US`, `EU`, `AU`. Optional. Defaults to `US`.
+
+```json
+{
+  "expo": {
+    "plugins": [
+      [
+        "@intercom/intercom-react-native",
+        {
+          "appId": "abc123",
+          "androidApiKey": "android_sdk-abc123",
+          "iosApiKey": "ios_sdk-abc123",
+          "intercomRegion": "EU" // Europe
+        }
+      ]
+    ]
+  }
+}
+```
+
+#### Expo: Push notifications
+
+Add the following configurations into your `app.json` or `app.config.js`:
+
+Place your `google-services.json` inside the project's root and link it
+
+```json
+{
+  "expo": {
+    ...
+    "android": {
+      "googleServicesFile": "./google-services.json",
+      ...
+    }
+  }
+```
+
+Add the necessary permission descriptions to infoPlist key.
+
+```json
+{
+  "expo": {
+    ...
+    "ios": {
+      ...
+      "infoPlist": {
+        "NSCameraUsageDescription": "This is just a sample text to access the Camera",
+      }
+      ...
+    }
+  }
+}
+```
+
+>**Note**: You should request user permission to display push notifications.
+e.g. [react-native-permissions](https://github.com/zoontek/react-native-permissions)
+
+Next, rebuild your app as described in the ["Adding custom native code"](https://docs.expo.io/workflow/customizing/) guide.
+
+#### Expo: Push notification deep links support
+
+> **Note**: You can read more on Expo [documentation](https://docs.expo.dev/guides/deep-linking)
+
+#### Android: Deep Link
+
+```json
+{
+  "expo": {
+    "android": {
+       "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "host": "Your app scheme(app)"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Android: App Links
+
+```json
+{
+  "expo": {
+    "android": {
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "Your app url(www.app.com)",
+              "pathPrefix": "Your url prefix e.g. /settings)"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### iOS: Deep Link
+
+```json
+{
+  "expo": {
+    "ios": {
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": ["Your app scheme(app)"]
+      }
+    }
+  }
+}
+```
+
+#### iOS: Universal Link
+
+```json
+{
+  "expo": {
+    "ios": {
+      "infoPlist": {
+        "IntercomUniversalLinkDomains": ["Your app url(www.app.com)"]
+      }
+    }
+  }
+}
+```
+
+
 
 ## Methods
 
@@ -613,7 +791,7 @@ Handles the opening of an Intercom push message. This will retrieve the URI from
 `Promise<boolean>`
 ___
 
-### `Intercom.displayMessenger()`
+### `Intercom.present()`
 
 Opens the Intercom Messenger automatically to the best place for your users.
 
@@ -675,7 +853,7 @@ Fetch a list of all Collections.
 ___
 ### `Intercom.fetchHelpCenterCollection(collectionId)`
 
-Get a list of sections/articles for a collection.
+Get a list of subcollections/articles for a collection.
 
 ### Options
 
@@ -844,11 +1022,6 @@ type HelpCenterArticle = {
   title: string;
 };
 
-type HelpCenterSection = {
-  name: string;
-  articles: HelpCenterArticle;
-};
-
 type HelpCenterCollectionItem = {
   id: string;
   title: string;
@@ -860,7 +1033,7 @@ type HelpCenterCollectionContent = {
   name: string;
   summary: string;
   articles: HelpCenterArticle[];
-  sections: HelpCenterSection[];
+  collections: HelpCenterCollectionItem[];
 };
 
 type HelpCenterArticleSearchResult = {
